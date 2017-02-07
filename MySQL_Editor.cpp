@@ -28,7 +28,7 @@ MySQL_Editor_Highlighter::MySQL_Editor_Highlighter ( QTextDocument *parent ) : Q
 
     m_colors[MySQL_Editor::Operator]   = QColor(0, 0, 0);
 
-    m_colors[MySQL_Editor::Number]     = QColor(192, 0, 0);
+    m_colors[MySQL_Editor::Number]     = QColor(64, 0, 0);
     m_colors[MySQL_Editor::String]     = QColor(0, 160, 0);
 
     m_colors[MySQL_Editor::Keyword]    = QColor(160, 0, 96);
@@ -1158,14 +1158,18 @@ MySQL_Editor::insertFromMimeData ( const QMimeData* source ) {
         }
         else {
             // Indent pasted text intelligently ...
-            int initial_position = QPlainTextEdit::textCursor().position();
-            QPlainTextEdit::insertPlainText(paste_text);
-            QTextCursor txt_cursor = QPlainTextEdit::textCursor();
+            // int initial_position = QPlainTextEdit::textCursor().position();
 
-            txt_cursor.setPosition(initial_position, QTextCursor::KeepAnchor);
-            QPlainTextEdit::setTextCursor(txt_cursor);
-            // ... using general formatting code
-            // Format_Selected_Text_Lines();
+            // QPlainTextEdit::insertPlainText(paste_text);
+
+            // QTextCursor txt_cursor = QPlainTextEdit::textCursor();
+            // txt_cursor.setPosition(initial_position, QTextCursor::KeepAnchor);
+            // QPlainTextEdit::setTextCursor(txt_cursor);
+            // // ... using general formatting code
+            // // Format_Selected_Text_Lines();
+
+            // Since we don't format, just paste and be done
+            QPlainTextEdit::insertPlainText(paste_text);
         }
     }
 }
