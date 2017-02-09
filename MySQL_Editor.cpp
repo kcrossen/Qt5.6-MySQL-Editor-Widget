@@ -20,8 +20,9 @@
 #include <QApplication>
 #include <QtGui>
 
-MySQL_Editor_Highlighter::MySQL_Editor_Highlighter ( QTextDocument *parent ) : QSyntaxHighlighter ( parent ),
-                                                                               m_markCaseSensitivity(Qt::CaseInsensitive) {
+MySQL_Editor_Highlighter::MySQL_Editor_Highlighter ( QTextDocument *parent ) :
+                            QSyntaxHighlighter ( parent ),
+                            m_markCaseSensitivity(Qt::CaseInsensitive) {
     // Default color scheme, similar to Qt Creator's default
     m_colors[MySQL_Editor::Normal]     = QColor(0, 0, 0);
     m_colors[MySQL_Editor::Comment]    = QColor(128, 128, 128);
@@ -39,6 +40,11 @@ MySQL_Editor_Highlighter::MySQL_Editor_Highlighter ( QTextDocument *parent ) : Q
     m_colors[MySQL_Editor::Identifier] = QColor(0, 32, 192);
 
     m_colors[MySQL_Editor::Marker]     = QColor(255, 255, 0);
+}
+
+void
+MySQL_Editor_Highlighter::setHighlightMySQLEditor ( MySQL_Editor *highlight_mysql_editor ) {
+    Highlight_MySQL_Editor = highlight_mysql_editor;
 }
 
 void
@@ -159,13 +165,13 @@ MySQL_Editor_Highlighter::highlightBlock ( const QString &text ) {
                 QString token = text.mid(start, i - start).trimmed();
                 if (token.startsWith('.') or (ch == '.'))
                     setFormat(start, i - start, m_colors[MySQL_Editor::Identifier]);
-                else if (m_keywords.contains(token.toUpper()))
+                else if (Highlight_MySQL_Editor->isKeyword(token.toUpper()))
                     setFormat(start, i - start, m_colors[MySQL_Editor::Keyword]);
-                else if (m_functions.contains(token.toUpper()))
+                else if (Highlight_MySQL_Editor->isFunction(token.toUpper()))
                     setFormat(start, i - start, m_colors[MySQL_Editor::Function]);
-                else if (m_types.contains(token.toUpper()))
+                else if (Highlight_MySQL_Editor->isType(token.toUpper()))
                     setFormat(start, i - start, m_colors[MySQL_Editor::Type]);
-                else if (m_intervals.contains(token.toUpper()))
+                else if (Highlight_MySQL_Editor->isInterval(token.toUpper()))
                     setFormat(start, i - start, m_colors[MySQL_Editor::Interval]);
                 else
                     setFormat(start, i - start, m_colors[MySQL_Editor::Identifier]);
@@ -282,30 +288,6 @@ MySQL_Editor_Highlighter::mark ( const QString &str,
     rehighlight();
 }
 
-void
-MySQL_Editor_Highlighter::setKeywords ( QStringList keyword_list ) {
-    m_keywords.clear();
-    m_keywords << keyword_list;
-}
-
-void
-MySQL_Editor_Highlighter::setFunctions ( QStringList function_list ) {
-    m_functions.clear();
-    m_functions << function_list;
-}
-
-void
-MySQL_Editor_Highlighter::setTypes ( QStringList type_list ) {
-    m_types.clear();
-    m_types << type_list;
-}
-
-void
-MySQL_Editor_Highlighter::setIntervals ( QStringList interval_list ) {
-    m_intervals.clear();
-    m_intervals << interval_list;
-}
-
 MySQL_Editor_Sidebar::MySQL_Editor_Sidebar ( MySQL_Editor *editor ) : QWidget ( editor ),
                                                                       foldIndicatorWidth ( 0 ) {
     backgroundColor = QColor(200, 200, 200);
@@ -404,6 +386,11 @@ MySQL_Editor_DocLayout::forceUpdate ( ) {
 MySQL_Editor::MySQL_Editor ( QWidget *parent ) : QPlainTextEdit( parent ) {
     Editor_Layout = new MySQL_Editor_DocLayout(document());
     Editor_Highlighter = new MySQL_Editor_Highlighter(document());
+    // Highlighter can tokenize SQL, but can't distinguish ...
+    // ... keywords, etc. from identifiers. Only one copy of these lists ...
+    // ... will be maintained (in the editor itself). The editor tokenizes ...
+    // ... SQL using a regular expression.
+    Editor_Highlighter->setHighlightMySQLEditor(this);
     Editor_Sidebar = new MySQL_Editor_Sidebar(this);
 
     // Default colors for these
@@ -442,8 +429,6 @@ MySQL_Editor::MySQL_Editor ( QWidget *parent ) : QPlainTextEdit( parent ) {
     MySQL_Keywords << "USE" << "USER_RESOURCES" << "USING" << "VALUES" << "VARYING";
     MySQL_Keywords << "WHEN" << "WHERE" << "WHILE" << "WITH" << "WRITE";
     MySQL_Keywords << "XOR" << "YEAR_MONTH" << "ZEROFILL";
-
-    Editor_Highlighter->setKeywords(MySQL_Keywords);
 
     QStringList functions;
     functions << "ASCII" << "BIN" << "BIT_LENGTH" << "CHAR" << "CHARACTER_LENGTH";
@@ -493,7 +478,6 @@ MySQL_Editor::MySQL_Editor ( QWidget *parent ) : QPlainTextEdit( parent ) {
     MySQL_Functions.clear();
     MySQL_Functions << functions << math_functions << date_time_functions;
     MySQL_Functions << cast_functions << misc_functions << aggregate_functions;
-    Editor_Highlighter->setFunctions(MySQL_Functions);
 
     QStringList strings_types;
     strings_types << "BINARY" << "BLOB" << "CHAR" << "CHARACTER" << "ENUM";
@@ -511,7 +495,6 @@ MySQL_Editor::MySQL_Editor ( QWidget *parent ) : QPlainTextEdit( parent ) {
 
     MySQL_Types.clear();
     MySQL_Types << strings_types << numeric_types << date_time_types;
-    Editor_Highlighter->setTypes(MySQL_Types);
 
     QStringList date_time_intervals;
     date_time_intervals << "MICROSECOND" << "MINUTE" << "HOUR" << "DAY" << "MONTH";
@@ -522,7 +505,6 @@ MySQL_Editor::MySQL_Editor ( QWidget *parent ) : QPlainTextEdit( parent ) {
 
     MySQL_Intervals.clear();
     MySQL_Intervals << date_time_intervals;
-    Editor_Highlighter->setIntervals(MySQL_Intervals);
 
     All_MySQL_Keywords.clear();
     All_MySQL_Keywords << MySQL_Keywords << MySQL_Functions << MySQL_Types << MySQL_Intervals;
@@ -991,7 +973,7 @@ MySQL_Editor::keyPressEvent ( QKeyEvent* event ) {
                     // SELECT abc
                     //        def
                     word_boundary_idx =
-                      previous_line_text_before_cursor.indexOf(QRegExp("\\b[^\\s]"),
+                      previous_line_text_before_cursor.indexOf(QRegularExpression("(?<=\\s)[^\\s]"),
                                                                (cursor_position_on_line + 1));
                 }
                 else if ((event->key() == Qt::Key_Escape) or
@@ -1006,7 +988,7 @@ MySQL_Editor::keyPressEvent ( QKeyEvent* event ) {
                     //         def
                     //  FROM
                     word_boundary_idx =
-                      previous_line_text_before_cursor.lastIndexOf(QRegExp("\\b[^\\s]"),
+                      previous_line_text_before_cursor.lastIndexOf(QRegularExpression("(?<=\\s)[^\\s]"),
                                                                    (cursor_position_on_line - 1));
                     if (word_boundary_idx < 0) {
                         QString before_cursor_text = QPlainTextEdit::toPlainText();
