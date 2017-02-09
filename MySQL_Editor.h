@@ -378,26 +378,14 @@ public:
 
 public:
     void
-    setKeywords ( QStringList keyword_list );
-
-    void
-    setFunctions ( QStringList function_list );
-
-    void
-    setTypes ( QStringList type_list );
-
-    void
-    setIntervals ( QStringList interval_list );
+    setHighlightMySQLEditor ( MySQL_Editor *highlight_mysql_editor );
 
 protected:
     void
     highlightBlock ( const QString &text );
 
 private:
-    QStringList m_keywords;
-    QStringList m_functions;
-    QStringList m_types;
-    QStringList m_intervals;
+    MySQL_Editor *Highlight_MySQL_Editor;
 
     QHash<MySQL_Editor::ColorComponent, QColor> m_colors;
     QString m_markString;
