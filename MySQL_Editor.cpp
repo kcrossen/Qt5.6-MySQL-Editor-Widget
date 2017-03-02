@@ -408,7 +408,7 @@ MySQL_Editor::MySQL_Editor ( QWidget *parent ) : QPlainTextEdit( parent ) {
     MySQL_Keywords << "DAY_SECOND" << "DEC" << "DEFAULT" << "DELAYED" << "DELETE";
     MySQL_Keywords << "DESC" << "DESCRIBE" << "DISTINCT" << "DISTINCTROW" << "DROP";
     MySQL_Keywords << "ELSE" << "ENCLOSED" << "ESCAPED" << "EXISTS" << "EXPLAIN";
-    MySQL_Keywords << "FIELDS" << "FOR" << "FOREIGN" << "FROM" << "FULLTEXT";
+    MySQL_Keywords << "FIELDS" << "FOR" << "FOREIGN" << "FROM" << "FULL" << "FULLTEXT";
     MySQL_Keywords << "FUNCTION" << "GRANT" << "GROUP" << "HAVING" << "HIGH_PRIORITY";
     MySQL_Keywords << "IF" << "IGNORE" << "IN" << "INDEX" << "INFILE";
     MySQL_Keywords << "INNER" << "INNODB" << "INSERT" << "INTERVAL" << "INTO" << "IS";
@@ -422,7 +422,8 @@ MySQL_Editor::MySQL_Editor ( QWidget *parent ) : QPlainTextEdit( parent ) {
     MySQL_Keywords << "REFERENCES" << "REGEXP" << "RENAME" << "REPLACE" << "REQUIRE";
     MySQL_Keywords << "RESTRICT" << "RETURNS" << "REVOKE" << "RIGHT" << "RLIKE";
     MySQL_Keywords << "SELECT" << "SET" << "SHOW" << "SONAME" << "SQL_BIG_RESULT";
-    MySQL_Keywords << "SQL_CALC_FOUND_ROWS" << "SQL_SMALL_RESULT" << "SSL" << "STARTING" << "STRAIGHT_JOIN";
+    MySQL_Keywords << "SQL_CALC_FOUND_ROWS" << "SQL_SMALL_RESULT" << "SSL";
+    MySQL_Keywords << "STARTING" << "STATUS" << "STRAIGHT_JOIN";
     MySQL_Keywords << "STRIPED" << "TABLE" << "TABLES" << "TERMINATED" << "THEN";
     MySQL_Keywords << "TO" << "TRAILING" << "TRUNCATE" << "TYPE" << "UNION";
     MySQL_Keywords << "UNIQUE" << "UNLOCK" << "UNSIGNED" << "UPDATE" << "USAGE";
@@ -472,8 +473,9 @@ MySQL_Editor::MySQL_Editor ( QWidget *parent ) : QPlainTextEdit( parent ) {
     misc_functions << "SYSTEM_USER" << "USER" << "VERSION";
 
     QStringList aggregate_functions;
-    aggregate_functions << "AVG" << "BIT_AND" << "BIT_OR" << "COUNT" << "MAX";
-    aggregate_functions << "MIN" << "STD" << "STDDEV" << "SUM";
+    aggregate_functions << "AVG" << "BIT_AND" << "BIT_OR" << "BIT_XOR" << "COUNT" << "GROUP_CONCAT";
+    aggregate_functions << "MAX" << "MIN" << "SEPARATOR" << "STD" << "STDDEV" << "STDDEV_POP";
+    aggregate_functions << "STDDEV_SAMP" << "SUM" << "VAR_POP" << "VAR_SAMP" << "VARIANCE";
 
     MySQL_Functions.clear();
     MySQL_Functions << functions << math_functions << date_time_functions;
